@@ -11,6 +11,8 @@ interface Props {
 
 export default function VideoFeed({ videos, hasMore, loadingMore, onLoadMore }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
+  // Feed-wide mute state: turning sound on/off persists across videos.
+  const [muted, setMuted] = useState(true);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Track which card is centered in the viewport via IntersectionObserver.
@@ -56,6 +58,8 @@ export default function VideoFeed({ videos, hasMore, loadingMore, onLoadMore }: 
             video={video}
             isActive={index === activeIndex}
             preload={Math.abs(index - activeIndex) === 1}
+            muted={muted}
+            onToggleMute={() => setMuted((m) => !m)}
           />
         </div>
       ))}

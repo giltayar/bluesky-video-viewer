@@ -7,14 +7,28 @@ interface Props {
   isActive: boolean;
   /** Load media for the active card and its immediate neighbors only. */
   preload: boolean;
+  /** Shared, feed-wide mute state so sound persists across videos. */
+  muted: boolean;
+  onToggleMute: () => void;
 }
 
-export default function VideoCard({ video, isActive, preload }: Props) {
+export default function VideoCard({
+  video,
+  isActive,
+  preload,
+  muted,
+  onToggleMute,
+}: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
   const [showMute, setShowMute] = useState(false);
 
   useHlsVideo(videoRef, video.playlistUrl, isActive || preload);
+
+  // Keep the element in sync with the shared mute state.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (el) el.muted = muted;
+  }, [muted]);
 
   // Play only the active card; pause and rewind the rest.
   useEffect(() => {
@@ -29,14 +43,9 @@ export default function VideoCard({ video, isActive, preload }: Props) {
   }, [isActive]);
 
   function toggleMute() {
-    const el = videoRef.current;
-    if (!el) return;
-    const next = !muted;
-    setMuted(next);
-    el.muted = next;
+    onToggleMute();
     setShowMute(true);
     window.setTimeout(() => setShowMute(false), 700);
-    if (!next) el.play().catch(() => undefined);
   }
 
   const cover =
