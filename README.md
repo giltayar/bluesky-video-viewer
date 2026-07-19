@@ -37,8 +37,31 @@ Open http://127.0.0.1:5173 and sign in with your Bluesky handle.
 - A user's posts: `https://bsky.app/profile/<handle>`
 - Raw AT URI: `at://<did>/app.bsky.feed.generator/<rkey>`
 
-## Production notes
+## Production (Railway)
 
-Set `NODE_ENV=production` and configure a confidential OAuth client in
-`server/.env`: a public `CLIENT_ID` (URL serving `/client-metadata.json`) and
-one or more ES256 `PRIVATE_KEY_*` values. See `server/.env.example`.
+Deployed as a **single service**: Fastify serves the JSON API *and* the built
+SPA from `web/dist` on one origin.
+
+- Build command: `npm run build` (builds `web/dist`)
+- Start command: `npm start` (runs the server, serving the SPA)
+- Node: `>=24` (native TypeScript, no build step for the backend)
+
+Generate a signing key locally and set it as a Railway variable:
+
+```sh
+npm run generate-key   # prints an ES256 PKCS#8 PEM
+```
+
+Set these variables on the Railway service:
+
+- `NODE_ENV=production`
+- `COOKIE_SECRET` — a long random string
+- `PRIVATE_KEY_1` — the generated PEM (add `PRIVATE_KEY_2/3` for key rotation)
+
+`PUBLIC_URL` defaults to `https://$RAILWAY_PUBLIC_DOMAIN`, and `CLIENT_ID`
+defaults to `PUBLIC_URL/client-metadata.json`, so you normally don't need to set
+either. See `server/.env.example` for all options.
+
+> Sessions are stored in memory, so they reset on redeploy/restart and won't
+> scale past one instance. Move the OAuth + app-session stores to Redis before
+> running multiple instances.
