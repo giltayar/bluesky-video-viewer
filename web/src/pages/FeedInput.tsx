@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthError, getSession, logout } from '../api.ts';
+import { getStoredFeedUrl, setStoredFeedUrl } from '../storage.ts';
 import type { SessionInfo } from '../types.ts';
 
 export default function FeedInput() {
   const navigate = useNavigate();
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [feedUrl, setFeedUrl] = useState('');
+  const [feedUrl, setFeedUrl] = useState(getStoredFeedUrl);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export default function FeedInput() {
       setError('Enter a bsky.app feed/profile URL or an at:// feed URI.');
       return;
     }
+    setStoredFeedUrl(value);
     navigate(`/watch?url=${encodeURIComponent(value)}`);
   }
 

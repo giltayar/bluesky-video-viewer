@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { startLogin } from '../api.ts';
+import { getStoredHandle, setStoredHandle } from '../storage.ts';
 
 export default function Login() {
-  const [handle, setHandle] = useState('');
+  const [handle, setHandle] = useState(getStoredHandle);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
@@ -14,7 +15,9 @@ export default function Login() {
     setBusy(true);
     setError(null);
     try {
-      const { redirectUrl } = await startLogin(handle.trim());
+      const trimmed = handle.trim();
+      setStoredHandle(trimmed);
+      const { redirectUrl } = await startLogin(trimmed);
       window.location.href = redirectUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.');
