@@ -44,16 +44,15 @@ export default function FeedInput() {
       <form className="card" onSubmit={onSubmit}>
         <h1>Pick a feed</h1>
         <p>
-          Signed in as <strong>@{session?.handle}</strong>. Type{' '}
-          <code>following</code> for your Following timeline, or paste a Bluesky
-          feed URL, a profile URL, or an <code>at://</code> feed URI.
+          Signed in as <strong>@{session?.handle}</strong>. Paste a Bluesky feed
+          URL, a profile URL, or an <code>at://</code> feed URI.
         </p>
         <div className="field">
           <label htmlFor="feedUrl">Feed URL</label>
           <input
             id="feedUrl"
             type="text"
-            placeholder="following  — or  https://bsky.app/profile/…/feed/…"
+            placeholder="https://bsky.app/profile/…/feed/…"
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
@@ -82,7 +81,6 @@ export default function FeedInput() {
 }
 
 function looksLikeFeed(value: string): boolean {
-  if (/^following$/i.test(value.trim())) return true;
   if (value.startsWith('at://')) return true;
   try {
     const url = new URL(value);

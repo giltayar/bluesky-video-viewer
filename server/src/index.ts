@@ -8,6 +8,7 @@ import { config } from './config.ts';
 import { createOAuthClient } from './oauth/client.ts';
 import { registerAuthRoutes } from './routes/auth.ts';
 import { registerFeedRoutes } from './routes/feed.ts';
+import { registerLikeRoutes } from './routes/like.ts';
 import { AppSessionStore } from './session/store.ts';
 
 const app = Fastify({ logger: true });
@@ -20,6 +21,7 @@ const appSessions = new AppSessionStore();
 
 registerAuthRoutes(app, oauth, appSessions);
 registerFeedRoutes(app, oauth, appSessions);
+registerLikeRoutes(app, oauth, appSessions);
 
 // Serve the built SPA (single-service deployment). In dev the frontend is
 // served by Vite instead, so this is skipped when web/dist is absent.

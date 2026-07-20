@@ -9,6 +9,20 @@ export default function Watch() {
   const navigate = useNavigate();
   const feedUrl = params.get('url') ?? '';
 
+  useEffect(() => {
+    if (!feedUrl) navigate('/', { replace: true });
+  }, [feedUrl, navigate]);
+
+  if (!feedUrl) return null;
+
+  // Keyed by feedUrl so navigating to another feed (e.g. an author's profile)
+  // fully remounts and reloads instead of keeping the previous feed's state.
+  return <FeedViewer key={feedUrl} feedUrl={feedUrl} />;
+}
+
+function FeedViewer({ feedUrl }: { feedUrl: string }) {
+  const navigate = useNavigate();
+
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(true);
@@ -49,14 +63,10 @@ export default function Watch() {
   }, [feedUrl, hasMore, navigate]);
 
   useEffect(() => {
-    if (!feedUrl) {
-      navigate('/', { replace: true });
-      return;
-    }
     if (initializedRef.current) return;
     initializedRef.current = true;
     void loadMore();
-  }, [feedUrl, loadMore, navigate]);
+  }, [loadMore]);
 
   if (loading) {
     return <div className="status-screen">Loading videos…</div>;

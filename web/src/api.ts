@@ -47,3 +47,17 @@ export function getFeed(url: string, cursor?: string): Promise<FeedResponse> {
   if (cursor) params.set('cursor', cursor);
   return request<FeedResponse>(`/api/feed?${params.toString()}`);
 }
+
+export function likePost(uri: string, cid: string): Promise<{ likeUri: string }> {
+  return request<{ likeUri: string }>('/api/like', {
+    method: 'POST',
+    body: JSON.stringify({ uri, cid }),
+  });
+}
+
+export function unlikePost(likeUri: string): Promise<void> {
+  return request<void>('/api/unlike', {
+    method: 'POST',
+    body: JSON.stringify({ likeUri }),
+  });
+}

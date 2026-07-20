@@ -19,6 +19,8 @@ export interface VideoItem {
   repostCount: number;
   replyCount: number;
   indexedAt: string;
+  /** The viewer's like record URI, if they have already liked this post. */
+  viewerLikeUri?: string;
 }
 
 export interface FeedResponse {

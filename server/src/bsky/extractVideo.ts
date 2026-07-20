@@ -54,5 +54,6 @@ export function extractVideo(item: AppBskyFeedDefs.FeedViewPost): VideoItem | nu
     repostCount: post.repostCount ?? 0,
     replyCount: post.replyCount ?? 0,
     indexedAt: post.indexedAt,
+    viewerLikeUri: post.viewer?.like,
   };
 }
