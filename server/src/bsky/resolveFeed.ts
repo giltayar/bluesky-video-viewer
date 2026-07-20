@@ -1,6 +1,7 @@
 export class BadFeedError extends Error {}
 
 export type FeedTarget =
+  | { kind: 'timeline' }
   | { kind: 'generator'; uri?: string; did?: string; handle?: string; rkey?: string }
   | { kind: 'author'; actor: string };
 
@@ -10,6 +11,7 @@ const AT_GENERATOR_RE = /^at:\/\/([^/]+)\/app\.bsky\.feed\.generator\/([^/]+)$/;
  * Parse a user-supplied feed reference into a target we can fetch.
  *
  * Accepts:
+ *  - "following" (or the bsky.app home URL)              (your Following timeline)
  *  - at://<did>/app.bsky.feed.generator/<rkey>
  *  - https://bsky.app/profile/<handle-or-did>/feed/<rkey>   (custom feed)
  *  - https://bsky.app/profile/<handle-or-did>               (author's posts)
@@ -17,6 +19,11 @@ const AT_GENERATOR_RE = /^at:\/\/([^/]+)\/app\.bsky\.feed\.generator\/([^/]+)$/;
 export function parseFeedInput(input: string): FeedTarget {
   const trimmed = input.trim();
   if (!trimmed) throw new BadFeedError('No feed URL provided.');
+
+  // The "Following" feed is the home timeline, not a feed generator.
+  if (/^following$/i.test(trimmed)) {
+    return { kind: 'timeline' };
+  }
 
   if (trimmed.startsWith('at://')) {
     const m = AT_GENERATOR_RE.exec(trimmed);
@@ -47,6 +54,11 @@ export function parseFeedInput(input: string): FeedTarget {
     if (!parts[2]) {
       return { kind: 'author', actor };
     }
+  }
+
+  // The bsky.app home page is the Following timeline.
+  if (parts.length === 0) {
+    return { kind: 'timeline' };
   }
 
   throw new BadFeedError(

@@ -16,6 +16,11 @@ async function getPage(
   target: FeedTarget,
   cursor: string | undefined,
 ): Promise<RawPage> {
+  if (target.kind === 'timeline') {
+    const res = await agent.getTimeline({ limit: PAGE_LIMIT, cursor });
+    return { feed: res.data.feed, cursor: res.data.cursor };
+  }
+
   if (target.kind === 'author') {
     const res = await agent.getAuthorFeed({
       actor: target.actor,

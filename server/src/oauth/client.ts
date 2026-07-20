@@ -20,6 +20,15 @@ export async function createOAuthClient(): Promise<NodeOAuthClient> {
 
   if (config.isProd) {
     const clientId = config.clientId ?? `${config.publicUrl}/client-metadata.json`;
+
+    if (!clientId.startsWith('https://')) {
+      throw new Error(
+        `Production OAuth requires an https public URL, but got "${config.publicUrl}". ` +
+          'Set PUBLIC_URL (or CLIENT_ID) to your public https domain, e.g. ' +
+          'PUBLIC_URL=https://your-app.up.railway.app',
+      );
+    }
+
     const keyImports = [
       process.env.PRIVATE_KEY_1,
       process.env.PRIVATE_KEY_2,

@@ -48,9 +48,6 @@ export default function VideoCard({
     window.setTimeout(() => setShowMute(false), 700);
   }
 
-  const cover =
-    video.aspectRatio && video.aspectRatio.height >= video.aspectRatio.width;
-
   return (
     <div className="video-card">
       <video
@@ -61,7 +58,7 @@ export default function VideoCard({
         playsInline
         preload="none"
         onClick={toggleMute}
-        style={{ objectFit: cover ? 'cover' : 'contain' }}
+        style={{objectFit: 'contain'}}
       />
       <div className={`mute-indicator${showMute ? ' show' : ''}`}>
         {muted ? 'Muted' : 'Sound on'}
