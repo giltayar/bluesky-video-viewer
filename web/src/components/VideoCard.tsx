@@ -22,7 +22,7 @@ export default function VideoCard({
   onToggleMute,
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [showMute, setShowMute] = useState(false);
+  const [paused, setPaused] = useState(false);
   const navigate = useNavigate();
 
   const [liked, setLiked] = useState(Boolean(video.viewerLikeUri));
@@ -71,16 +71,23 @@ export default function VideoCard({
     if (!el) return;
     if (isActive) {
       el.play().catch(() => undefined);
+      setPaused(false);
     } else {
       el.pause();
       el.currentTime = 0;
     }
   }, [isActive]);
 
-  function toggleMute() {
-    onToggleMute();
-    setShowMute(true);
-    window.setTimeout(() => setShowMute(false), 700);
+  function togglePlay() {
+    const el = videoRef.current;
+    if (!el) return;
+    if (el.paused) {
+      el.play().catch(() => undefined);
+      setPaused(false);
+    } else {
+      el.pause();
+      setPaused(true);
+    }
   }
 
   function openAuthorFeed() {
@@ -151,12 +158,23 @@ export default function VideoCard({
         loop
         playsInline
         preload="none"
-        onClick={toggleMute}
+        onClick={togglePlay}
         style={{objectFit: 'contain'}}
       />
-      <div className={`mute-indicator${showMute ? ' show' : ''}`}>
-        {muted ? 'Muted' : 'Sound on'}
-      </div>
+      {isActive && paused && (
+        <div className="play-indicator" aria-hidden="true">
+          ▶
+        </div>
+      )}
+      <button
+        type="button"
+        className="sound-toggle"
+        onClick={onToggleMute}
+        aria-pressed={!muted}
+        title={muted ? 'Unmute' : 'Mute'}
+      >
+        {muted ? '🔇' : '🔊'}
+      </button>
       <div className="video-overlay">
         <button
           type="button"
