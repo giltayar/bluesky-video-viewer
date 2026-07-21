@@ -30,7 +30,34 @@ export default function VideoCard({
   const likeUriRef = useRef<string | undefined>(video.viewerLikeUri);
   const likeBusyRef = useRef(false);
 
+  const [progress, setProgress] = useState(0);
+  const [remaining, setRemaining] = useState<number | null>(null);
+
   useHlsVideo(videoRef, video.playlistUrl, isActive || preload);
+
+  // Track playback progress / remaining time for the scrubber and readout.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    function update() {
+      const dur = el!.duration;
+      if (Number.isFinite(dur) && dur > 0) {
+        setProgress(el!.currentTime / dur);
+        setRemaining(Math.max(0, dur - el!.currentTime));
+      } else {
+        setProgress(0);
+        setRemaining(null);
+      }
+    }
+    el.addEventListener('timeupdate', update);
+    el.addEventListener('loadedmetadata', update);
+    el.addEventListener('durationchange', update);
+    return () => {
+      el.removeEventListener('timeupdate', update);
+      el.removeEventListener('loadedmetadata', update);
+      el.removeEventListener('durationchange', update);
+    };
+  }, []);
 
   // Keep the element in sync with the shared mute state.
   useEffect(() => {
@@ -147,6 +174,9 @@ export default function VideoCard({
         </button>
         {video.text && <p className="post-text">{video.text}</p>}
         <div className="stats">
+          {remaining != null && (
+            <span className="time-remaining">{formatRemaining(remaining)}</span>
+          )}
           <button
             type="button"
             className={`like-btn${liked ? ' liked' : ''}`}
@@ -163,6 +193,21 @@ export default function VideoCard({
           </a>
         </div>
       </div>
+      {isActive && (
+        <div className="scrubber">
+          <div
+            className="scrubber-fill"
+            style={{ width: `${Math.min(100, progress * 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+function formatRemaining(seconds: number): string {
+  const total = Math.floor(seconds);
+  const mins = Math.floor(total / 60);
+  const secs = total % 60;
+  return `-${mins}:${String(secs).padStart(2, '0')}`;
 }
