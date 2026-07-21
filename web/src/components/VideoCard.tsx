@@ -149,6 +149,31 @@ export default function VideoCard({
     return () => window.removeEventListener('keydown', onKey);
   }, [isActive, toggleLike]);
 
+  // Arrow keys seek the active video by 10 seconds.
+  useEffect(() => {
+    if (!isActive) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      const el = videoRef.current;
+      if (!el) return;
+      e.preventDefault();
+      const delta = e.key === 'ArrowRight' ? 10 : -10;
+      const max = Number.isFinite(el.duration) ? el.duration : el.currentTime + delta;
+      el.currentTime = Math.max(0, Math.min(max, el.currentTime + delta));
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isActive]);
+
   return (
     <div className="video-card">
       <video
