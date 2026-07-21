@@ -57,7 +57,7 @@ export default function VideoFeed({ videos, hasMore, loadingMore, onLoadMore }: 
           <VideoCard
             video={video}
             isActive={index === activeIndex}
-            preload={Math.abs(index - activeIndex) === 1}
+            preload={index === activeIndex + 1}
             muted={muted}
             onToggleMute={() => setMuted((m) => !m)}
           />

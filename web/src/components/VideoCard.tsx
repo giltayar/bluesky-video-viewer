@@ -157,7 +157,7 @@ export default function VideoCard({
         muted={muted}
         loop
         playsInline
-        preload="none"
+        preload={isActive || preload ? 'auto' : 'none'}
         onClick={togglePlay}
         style={{objectFit: 'contain'}}
       />
