@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthError, getFeed } from '../api.ts';
 import VideoFeed from '../components/VideoFeed.tsx';
+import { getLastVideo, setLastVideo } from '../storage.ts';
 import type { VideoItem } from '../types.ts';
 
 export default function Watch() {
@@ -29,6 +30,13 @@ function FeedViewer({ feedUrl }: { feedUrl: string }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Captured once at mount, before scrolling overwrites it: the last video the
+  // user viewed in this feed during a previous visit.
+  const [resumeTarget] = useState<string | undefined>(() => getLastVideo(feedUrl) || undefined);
+  // The video we're actively jumping to (set when the user taps "resume").
+  const [resumeToUri, setResumeToUri] = useState<string | null>(null);
+  const [jumping, setJumping] = useState(false);
 
   // Guards against overlapping fetches and React StrictMode double-invoke.
   const fetchingRef = useRef(false);
@@ -68,6 +76,36 @@ function FeedViewer({ feedUrl }: { feedUrl: string }) {
     void loadMore();
   }, [loadMore]);
 
+  // Persist the last-viewed video per feed so it can be resumed later.
+  const onActiveChange = useCallback(
+    (video: VideoItem) => setLastVideo(feedUrl, video.postUri),
+    [feedUrl],
+  );
+
+  // While jumping to the resume target, keep loading pages until it appears
+  // (unbounded — it may be deep in the feed) or the feed is exhausted.
+  useEffect(() => {
+    if (!resumeToUri) return;
+    if (videos.some((v) => v.postUri === resumeToUri)) {
+      setJumping(false);
+      return;
+    }
+    if (!hasMore) {
+      setJumping(false);
+      setResumeToUri(null);
+      return;
+    }
+    if (!loadingMore && !fetchingRef.current) {
+      void loadMore();
+    }
+  }, [resumeToUri, videos, hasMore, loadingMore, loadMore]);
+
+  function goToLastVideo() {
+    if (!resumeTarget) return;
+    setResumeToUri(resumeTarget);
+    setJumping(true);
+  }
+
   if (loading) {
     return <div className="status-screen">Loading videos…</div>;
   }
@@ -100,12 +138,20 @@ function FeedViewer({ feedUrl }: { feedUrl: string }) {
         <Link className="btn btn-ghost" to="/">
           ← Feeds
         </Link>
+        {resumeTarget && !resumeToUri && (
+          <button className="btn btn-ghost" type="button" onClick={goToLastVideo}>
+            Go to last video seen
+          </button>
+        )}
       </div>
+      {jumping && <div className="jump-indicator">Finding where you left off…</div>}
       <VideoFeed
         videos={videos}
         hasMore={hasMore}
         loadingMore={loadingMore}
         onLoadMore={loadMore}
+        onActiveChange={onActiveChange}
+        scrollToPostUri={resumeToUri ?? undefined}
       />
     </>
   );

@@ -7,13 +7,25 @@ interface Props {
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
+  /** Called when the active (in-view) video changes. */
+  onActiveChange?: (video: VideoItem) => void;
+  /** If set, scroll to this post once it is present in the list. */
+  scrollToPostUri?: string;
 }
 
-export default function VideoFeed({ videos, hasMore, loadingMore, onLoadMore }: Props) {
+export default function VideoFeed({
+  videos,
+  hasMore,
+  loadingMore,
+  onLoadMore,
+  onActiveChange,
+  scrollToPostUri,
+}: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   // Feed-wide mute state: turning sound on/off persists across videos.
   const [muted, setMuted] = useState(true);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const scrolledToRef = useRef<string | undefined>(undefined);
 
   // Track which card is centered in the viewport via IntersectionObserver.
   useEffect(() => {
@@ -36,6 +48,24 @@ export default function VideoFeed({ videos, hasMore, loadingMore, onLoadMore }: 
     }
     return () => observer.disconnect();
   }, [videos.length]);
+
+  // Scroll to a requested video (e.g. "resume") once it is loaded.
+  useEffect(() => {
+    if (!scrollToPostUri || scrolledToRef.current === scrollToPostUri) return;
+    const index = videos.findIndex((v) => v.postUri === scrollToPostUri);
+    if (index < 0) return;
+    scrolledToRef.current = scrollToPostUri;
+    if (index > 0) {
+      cardRefs.current[index]?.scrollIntoView();
+      setActiveIndex(index);
+    }
+  }, [scrollToPostUri, videos]);
+
+  // Report the currently active video to the parent (for "resume" tracking).
+  useEffect(() => {
+    const video = videos[activeIndex];
+    if (video) onActiveChange?.(video);
+  }, [activeIndex, videos, onActiveChange]);
 
   // Prefetch next page when nearing the end.
   useEffect(() => {

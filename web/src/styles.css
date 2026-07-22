@@ -114,6 +114,19 @@ input[type='text'] {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
 }
 
+.jump-indicator {
+  position: fixed;
+  top: max(64px, calc(env(safe-area-inset-top) + 56px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
 /* ---- Vertical video feed ---- */
 .feed {
   height: 100dvh;
